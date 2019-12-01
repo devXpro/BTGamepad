@@ -7,12 +7,6 @@ class Bluetooth:
     P_CTRL = 17
     P_INTR = 19
     UUID = "1f16e7c0-b59b-11e3-95d2-0002a5d5c51b"
-    SERVICE_NAME = "org.bluez"
-    OBJECT_IFACE =  "org.freedesktop.DBus.ObjectManager"
-    ADAPTER_IFACE = SERVICE_NAME + ".Adapter1"
-    DEVICE_IFACE = SERVICE_NAME + ".Device1"
-    PROPERTIES_IFACE = "org.freedesktop.DBus.Properties"
-
     def __init__(self, sdp, classname, devname):
         self.classname = classname
         self.devname = devname
@@ -24,14 +18,9 @@ class Bluetooth:
 
         self.bus = dbus.SystemBus()
         try:
-            self.manager = dbus.Interface(self.bus.get_object("org.bluez", "/"), "org.freedesktop.DBus.ObjectManager")
-            objects = self.manager.GetManagedObjects()
-            for path, ifaces in objects.iteritems():
-                adapter = ifaces.get(self.ADAPTER_IFACE)
-                if adapter is None:
-                    continue
-                obj = self.bus.get_object(self.SERVICE_NAME, path)
-                self.service = dbus.Interface(obj, self.ADAPTER_IFACE)
+            self.manager = dbus.Interface(self.bus.get_object("org.bluez", "/"), "org.bluez.Manager")
+            adapter_path = self.manager.DefaultAdapter()
+            self.service = dbus.Interface(self.bus.get_object("org.bluez", adapter_path),"org.bluez.Service")
         except Exception, e:
             sys.exit("Please turn on bluetooth")
         try:
